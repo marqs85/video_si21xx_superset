@@ -156,6 +156,8 @@ limitations under the License.
 
 #define   SiLEVEL          0
 #include "Silabs_L0_API.h"
+#include "i2c_opencores.h"
+#include "system.h"
 
 #ifdef    NO_WIN32
   /* NO_WIN32: includes for non-Windows platform */
@@ -184,10 +186,12 @@ limitations under the License.
 L0_Context  rawI2C_context;
 L0_Context *rawI2C;
 
+#ifdef SIMU_ENABLED
 #define  SIMULATOR_SCOPE 0xffff
 int      Byte[SIMULATOR_SCOPE];
 char           L0_error_buffer_0[ERROR_MESSAGE_MAX_LENGH];
 char           L0_error_buffer_1[ERROR_MESSAGE_MAX_LENGH];
+#endif
 
 char          *stored_error_message;
 char          *L0_error_message;
@@ -198,8 +202,8 @@ extern "C" {
 
 
 #ifdef    SiTRACES
-#define   SiTRACES_BUFFER_LENGTH  100000
-#define   SiTRACES_NAMESIZE           30
+#define   SiTRACES_BUFFER_LENGTH  1200
+#define   SiTRACES_NAMESIZE           10
 #define   SiTRACES_FUNCTION_NAMESIZE  30
 #if       SiTRACES_FEATURES == SiTRACES_FULL
     #define SiTRACES_DEFAULT_FILE "SiLabs_Traces.txt"
@@ -233,16 +237,16 @@ int           carriage_return        = 1;
 int           trace_levels           = 0xffffffff;
 
 char trace_buffer[SiTRACES_BUFFER_LENGTH];
+char trace_message[1000];
+char trace_L0_message[50];
+char trace_source_file[20];
 char trace_stockInt[25];
 char trace_timer[50];
 char trace_elapsed_time[20];
-char trace_source_file[100];
 char trace_file_name[SiTRACES_NAMESIZE+1];
 char trace_source_function[SiTRACES_FUNCTION_NAMESIZE+1];
 char trace_tag[SILABS_TAG_SIZE];
 char trace_level_text[SILABS_TAG_SIZE];
-char trace_message[1000];
-char trace_L0_message[1000];
 
 /************************************************************************************************************************
   SiTraceLevelEnabled function
@@ -307,7 +311,7 @@ void  SiTraceDefaultConfiguration(void) {
       fprintf(file,"            SiTraceFunction log created on %s\n",trace_timer);
       fclose(file);
     } else {
-      printf("%s file access not possible.\n",trace_file_name);
+      CUSTOM_PRINTF("%s file access not possible.\n",trace_file_name);
     }
 #endif /* SiTRACES_FEATURES == SiTRACES_FULL */
 }
@@ -433,7 +437,7 @@ void  traceToFile            (char* trace) {
       fclose(file);
     } else {
       trace_output_type=TRACE_MEMORY;
-      printf("writing in %s failed, routing traces to memory.", trace_file_name);
+      CUSTOM_PRINTF("writing in %s failed, routing traces to memory.", trace_file_name);
     }
 }
 #endif /* SiTRACES_FEATURES == SiTRACES_FULL */
@@ -527,7 +531,7 @@ void  traceToDestination     (char* trace) {
       if (trace[last] != 0x0a) {sprintf(trace, "%s\n", trace);}
     }
     switch(trace_output_type) {
-        case TRACE_MEMORY      : traceToBuffer(trace); break;
+        //case TRACE_MEMORY      : traceToBuffer(trace); break;
         case TRACE_STDOUT      : traceToStdout(trace); break;
 #if       SiTRACES_FEATURES == SiTRACES_FULL
         case TRACE_EXTERN_FILE : traceToFile  (trace); break;
@@ -557,12 +561,13 @@ void  traceToDestination     (char* trace) {
   Porting:    Not compiled if SiTRACES is not defined in Silabs_L0_API.h.
 ************************************************************************************************************************/
 const char *SiTraceConfiguration   (const char *config) {
+#if 0
+    unsigned int i;
 #if       SiTRACES_FEATURES == SiTRACES_FULL
     FILE *file;
     time_t rawtime;
     struct tm * timeinfo;
     char c;
-    unsigned int i;
     char *pArray;
 #endif /* SiTRACES_FEATURES == SiTRACES_FULL */
     char saved;
@@ -831,6 +836,8 @@ const char *SiTraceConfiguration   (const char *config) {
       return (char *)"";
     }
     return SiTraceConfiguration("traces status");
+#endif
+return 0;
 }
 /************************************************************************************************************************
   SiTraceFunction function
@@ -1006,7 +1013,7 @@ int     system_time          (void)        {
   }
 #else  /* NO_WIN32 */
   /* <porting> Replace 'clock' by whatever is necessary to return the system time in milliseconds */
-  double time_in_mill;
+  unsigned long time_in_mill;
 #ifdef    LINUX_ST_SDK2_I2C
   struct timespec  tv;
   getnstimeofday(&tv);
@@ -1015,14 +1022,16 @@ int     system_time          (void)        {
 #ifdef LINUX_KERNEL_DRIVER
   return jiffies_to_msecs(jiffies);
 #else /* LINUX_KERNEL_DRIVER */
-  struct timeval  tv;
+  /*struct timeval  tv;
   gettimeofday(&tv, NULL);
-  time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; // convert tv_sec & tv_usec to millisecond
+  time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; // convert tv_sec & tv_usec to millisecond*/
+  time_in_mill = alt_timestamp() / (TIMER_0_FREQ/1000);
 #endif /* LINUX_KERNEL_DRIVER */
 #endif /* LINUX_ST_SDK2_I2C */
-  return (unsigned long) time_in_mill;
+  return (int) time_in_mill;
 #endif /* NO_WIN32 */
 }
+#ifdef SIMU_ENABLED
 int     L0_SimulatorRead     (int AdrSize, unsigned char * Adr, int ReadSize, unsigned char *Buffer) {
   int I2cIndex, relativeAdd, i;
   I2cIndex =0;
@@ -1053,6 +1062,7 @@ int     L0_SimulatorWrite    (int AdrSize, int BufSize, unsigned char * Buffer){
   }
   return BufSize;
 }
+#endif
 
 /* Re-definition of SiTRACE for L0_Context */
 #ifdef    SiTRACES
@@ -1156,17 +1166,21 @@ void    L0_Init              (L0_Context *i2c) {
 
   i2c->address             = 0;
   i2c->indexSize           = 0;
-  i2c->connectionType      = SIMU;
+  i2c->connectionType      = CUSTOMER;
   i2c->trackWrite          = 0;
   i2c->trackRead           = 0;
   i2c->mustReadWithoutStop = 0;
   i2c->tag_index           = 0;
+#ifdef SIMU_ENABLED
   for (i=0; i<SIMULATOR_SCOPE; i++) {Byte[i]=0x00;}
+#endif
   rawI2C = &rawI2C_context;
   rawI2C->indexSize = 0;
+#ifdef SIMU_ENABLED
   stored_error_message = L0_error_buffer_0;
   L0_error_message     = L0_error_buffer_1;
   sprintf(stored_error_message, "%s", "");
+#endif
   #ifdef    USB_Capability
   if (!cypress_checks_done) {
     L0_Connect (i2c, USB);
@@ -1412,6 +1426,12 @@ int     L0_ReadBytes         (L0_Context* i2c, unsigned int iI2CIndex, int iNbBy
       and on failure nbReadBytes = 0.
       data bytes will be stored in pucDataBuffer.
       */
+      I2C_start(I2C_OPENCORES_0_BASE, i2c->address, 1);
+      for (i=0; i<iNbBytes; i++) {
+          pucDataBuffer[i] = I2C_read(I2C_OPENCORES_0_BASE, (i==(iNbBytes-1)));
+      }
+      nbReadBytes = iNbBytes;
+
 #ifdef LINUX_KERNEL_DRIVER
       if ((i2c->mustReadWithoutStop == 0)
             && (I2CRead(i2c->user, i2c->address>>1, pucDataBuffer, iNbBytes) == iNbBytes))
@@ -1423,9 +1443,11 @@ int     L0_ReadBytes         (L0_Context* i2c, unsigned int iI2CIndex, int iNbBy
           nbReadBytes = 0;
 #endif /* LINUX_KERNEL_DRIVER */
       break;
+#ifdef SIMU_ENABLED
     case SIMU:
       nbReadBytes = L0_SimulatorRead (i2c->indexSize, pucAddressBuffer, iNbBytes, pucDataBuffer);
       break;
+#endif
     default:
       break;
   }
@@ -1531,6 +1553,11 @@ int     L0_WriteBytes        (L0_Context* i2c, unsigned int iI2CIndex, int iNbBy
         Make it such that on success nbWrittenBytes = iNbBytes + i2c->indexSize
         and on failure write_error is incremented.
         */
+        I2C_start(I2C_OPENCORES_0_BASE, i2c->address, 0);
+        for (i=0; i<iNbBytes; i++) {
+            I2C_write(I2C_OPENCORES_0_BASE, pucDataBuffer[i], (i==(iNbBytes-1)));
+        }
+        nbWrittenBytes = iNbBytes + i2c->indexSize;
 
 #ifdef LINUX_KERNEL_DRIVER
       if (I2CWrite(i2c->user, i2c->address>>1, pucDataBuffer, iNbBytes + i2c->indexSize)
@@ -1552,9 +1579,11 @@ int     L0_WriteBytes        (L0_Context* i2c, unsigned int iI2CIndex, int iNbBy
           }
         #endif /* LINUX_I2C_Capability */
         break;
+#ifdef SIMU_ENABLED
     case SIMU:
       nbWrittenBytes = L0_SimulatorWrite(i2c->indexSize, (iNbBytes + i2c->indexSize), pucBuffer);
       break;
+#endif
     default:
       break;
   }

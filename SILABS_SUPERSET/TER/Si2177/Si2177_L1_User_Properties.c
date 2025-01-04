@@ -41,7 +41,7 @@ void          Si2177_storeUserProperties    (Si2177_PropObj   *prop) {
 #endif /* Si2177_ATV_AFC_RANGE_PROP */
 
 #ifdef    Si2177_ATV_AF_OUT_PROP
-  prop->atv_af_out.volume                    =     0; /* (default     0) */
+  prop->atv_af_out.volume                    =     50; /* (default     0) */
   prop->atv_af_out.soft_mute                 = Si2177_ATV_AF_OUT_PROP_SOFT_MUTE_DISABLE ; /* (default 'DISABLE') */
 #endif /* Si2177_ATV_AF_OUT_PROP */
 
@@ -63,7 +63,7 @@ void          Si2177_storeUserProperties    (Si2177_PropObj   *prop) {
 
 #ifdef    Si2177_ATV_AUDIO_MODE_PROP
   prop->atv_audio_mode.audio_sys             = Si2177_ATV_AUDIO_MODE_PROP_AUDIO_SYS_DEFAULT  ; /* (default 'DEFAULT') */
-  prop->atv_audio_mode.demod_mode            = Si2177_ATV_AUDIO_MODE_PROP_DEMOD_MODE_SIF     ; /* (default 'SIF') */
+  prop->atv_audio_mode.demod_mode            = Si2177_ATV_AUDIO_MODE_PROP_DEMOD_MODE_FM1     ; /* (default 'SIF') */
   prop->atv_audio_mode.chan_bw               = Si2177_ATV_AUDIO_MODE_PROP_CHAN_BW_DEFAULT    ; /* (default 'DEFAULT') */
 #endif /* Si2177_ATV_AUDIO_MODE_PROP */
 

@@ -32,7 +32,7 @@ limitations under the License.
 ****************************************************************************************/
 
 /* Un-comment the line below to compile for non-windows platforms (such as Linux) */
-/*#define NO_WIN32*/
+#define NO_WIN32
 
 #ifdef    NO_WIN32
   /* Linux: includes for non-Windows platform */
@@ -53,7 +53,7 @@ limitations under the License.
     #include <math.h>
   #endif /* NO_MATH_H_APPLICATION */
 /* <porting> Comment the line below to avoid using the Cypress chip for USB communication under Linux */
-  #define   LINUX_USB_Capability
+  //#define   LINUX_USB_Capability
 /* <porting> Comment the line below to avoid using I2C under Linux */
 /*  #define   LINUX_I2C_Capability */
   #ifdef    LINUX_I2C_Capability
@@ -78,8 +78,13 @@ limitations under the License.
   #define   USB_Capability
 #endif /* NO_WIN32 */
 
+#include "sys/alt_timestamp.h"
+
 /* Uncomment the following line to activate all traces in the code */
-#define  SiTRACES
+//#define  SiTRACES
+
+/* Remove unused code if simulator not needed */
+//#define SIMU_ENABLED
 
 /* Uncomment the following line to activate SPI FW download */
 #ifndef   LINUX_ST_SDK2_I2C
@@ -87,14 +92,18 @@ limitations under the License.
 #endif /* LINUX_ST_SDK2_I2C */
 
 /* <porting> Replace  CUSTOM_PRINTF with your print-out function.*/
+#ifdef    SiTRACES
 #ifdef    LINUX_ST_SDK2_I2C
   #define CUSTOM_PRINTF pr_info
 #else  /* LINUX_ST_SDK2_I2C */
-  #define CUSTOM_PRINTF printf
+  #define CUSTOM_PRINTF dd_printf
 #endif /* LINUX_ST_SDK2_I2C */
+#else  /* SiTRACES */
+  #define CUSTOM_PRINTF(...)
+#endif  /* SiTRACES */
 
-#define ERROR_MESSAGE_MAX_LENGH 1000
-#define SILABS_TAG_SIZE           20
+#define ERROR_MESSAGE_MAX_LENGH 300
+#define SILABS_TAG_SIZE           4
 #define CHECK_FOR_ERRORS  if (L0_ErrorMessage()) CUSTOM_PRINTF("\n\n**************\n%s**************\n\n\n", L0_error_message);
 
 /* <porting> Replace  STRING_APPEND_SAFE with whatever you need to append a new string to an existing one like the C printf function does. */
@@ -129,7 +138,7 @@ limitations under the License.
 #ifdef    LINUX_ST_SDK2_I2C
   #define SiTRACES_FEATURES     SiTRACES_MINIMAL
 #else  /* LINUX_ST_SDK2_I2C */
-  #define SiTRACES_FEATURES     SiTRACES_FULL
+  #define SiTRACES_FEATURES     SiTRACES_MINIMAL
 #endif /* LINUX_ST_SDK2_I2C */
   #define SiLOGS   SiTRACE
 #else /* SiTRACES */
