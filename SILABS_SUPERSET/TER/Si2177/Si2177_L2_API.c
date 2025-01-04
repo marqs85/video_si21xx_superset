@@ -267,7 +267,7 @@ int Si2177_PowerUpUsingBroadcastI2C    (L1_Si2177_Context *tuners[], int tuner_c
   Parameter:  number of lines in firmware table array (size in bytes / firmware_struct)
   Returns:    Si2177/I2C transaction error code, NO_Si2177_ERROR if successful
 ************************************************************************************************************************/
-int Si2177_LoadFirmware_16        (L1_Si2177_Context *api, firmware_struct fw_table[], int nbLines)
+int Si2177_LoadFirmware_16        (L1_Si2177_Context *api, const firmware_struct fw_table[], int nbLines)
 {
     int return_code;
     int line;
@@ -282,7 +282,7 @@ int Si2177_LoadFirmware_16        (L1_Si2177_Context *api, firmware_struct fw_ta
     if (fw_table[line].firmware_len > 0)  /* don't download if length is 0 , e.g. dummy firmware */
     {
       /* send firmware_len bytes (up to 16) to Si2177 */
-      if ((return_code = Si2177_L1_API_Patch(api, fw_table[line].firmware_len, fw_table[line].firmware_table)) != NO_Si2177_ERROR)
+      if ((return_code = Si2177_L1_API_Patch(api, fw_table[line].firmware_len, (unsigned char*)fw_table[line].firmware_table)) != NO_Si2177_ERROR)
       {
         SiTRACE("Si2177_LoadFirmware_16 error 0x%02x patching line %d: %s\n", return_code, line, Si2177_L1_API_ERROR_TEXT(return_code) );
         if (line == 0) {
@@ -392,14 +392,14 @@ int Si2177_UpdateChannelScanFrequency(int freq,int channelsFound)
   if (channelsFound)
   {
     /* Terminate the previous scan message */
-    printf("Found Frequency %d\n",freq);
+    SiTRACE("Found Frequency %d\n",freq);
   }
   else
   {
     if (freq==previousFrequency)
-      printf("Not Found\n");
+      SiTRACE("Not Found\n");
     else
-      printf("Scanning Frequency %d, ",freq);
+      SiTRACE("Scanning Frequency %d, ",freq);
   }
   previousFrequency=freq;
 
@@ -733,12 +733,16 @@ int Si2177_ATV_Channel_Scan_M (L1_Si2177_Context *api, unsigned long rangeMinHz,
 
       /* Add the afc_freq (khz) to the center frequency and add to the channel list */
       api->ChannelList[api->ChannelListSize]= freq + (api->rsp->atv_status.afc_freq * 1000);
+      api->ChannelType[api->ChannelListSize][0]='M';
+      api->ChannelType[api->ChannelListSize][1]='\0';
       /* Update the callback to indicate the channel is found */
       /* if user requested abort then break from the loop */
       if (Si2177_UpdateChannelScanFrequency(freq + (api->rsp->atv_status.afc_freq * 1000), api->ChannelListSize+1))
         break;
 
             freq = api->ChannelList[api->ChannelListSize++] + CHANNEL_BANDWIDTH;
+            if (api->ChannelListSize == MAX_POSSIBLE_CHANNELS)
+              return NO_Si2177_ERROR;
          }
          else  /* We didn't find a station at this frequency so increment and move on */
          {
@@ -937,9 +941,9 @@ int Si2177_ATV_Channel_Scan_PAL(L1_Si2177_Context *api, unsigned long rangeMinHz
     else
     {
       /* standard not found */
-    /* if user requested abort then break from the loop */
-    if (Si2177_UpdateChannelScanFrequency(freq, CHANNEL_NOT_FOUND))
-      break;
+      /* if user requested abort then break from the loop */
+      if (Si2177_UpdateChannelScanFrequency(freq, CHANNEL_NOT_FOUND))
+        break;
 
       /* goto flowchart section B */
       freq += SCAN_INTERVAL;
@@ -967,8 +971,10 @@ int Si2177_ATV_Channel_Scan_PAL(L1_Si2177_Context *api, unsigned long rangeMinHz
     /* if user requested abort then break from the loop */
     if (Si2177_UpdateChannelScanFrequency(api->ChannelList[api->ChannelListSize], api->ChannelListSize+1))
       break;
-    /* go to the next frequency in the loop */
+    /* go to the next frequency in the loop unless all channel slots filled */
     freq = api->ChannelList[api->ChannelListSize++] + channelIncrement;
+    if (api->ChannelListSize == MAX_POSSIBLE_CHANNELS)
+      return NO_Si2177_ERROR;
     }
 
  return NO_Si2177_ERROR;

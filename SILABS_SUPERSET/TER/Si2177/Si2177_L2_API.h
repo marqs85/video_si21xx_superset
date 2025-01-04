@@ -39,7 +39,7 @@ int Si2177_PowerUpUsingBroadcastI2C    (L1_Si2177_Context *tuners[], int tuner_c
 int  Si2177_LoadFirmware              (L1_Si2177_Context *api, unsigned char *fw_table, int lines);
 int  Si2177_StartFirmware             (L1_Si2177_Context *api);
 
-int Si2177_LoadFirmware_16    (L1_Si2177_Context *api, firmware_struct fw_table[], int nbLines);
+int Si2177_LoadFirmware_16    (L1_Si2177_Context *api, const firmware_struct fw_table[], int nbLines);
 int Si2177_UpdateChannelScanFrequency(int freq,int channelsFound);
 int Si2177_GetRF                 (L1_Si2177_Context *api);
 int Si2177_Tune                  (L1_Si2177_Context *api, unsigned char mode, unsigned long freq);

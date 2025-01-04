@@ -29,7 +29,8 @@ limitations under the License.
 
  #define BUF_SIZE 1000
 /* define the maximum possible channels (1002MHz - 43MHz) / 6MHz  (required for the channelscan array)*/
-#define MAX_POSSIBLE_CHANNELS 160
+// reduce maximum supported channels to keep struct size minimal for embedded systems
+#define MAX_POSSIBLE_CHANNELS 1
 /* _additional_defines_point */
 #define MAX_LENGTH             80
 
