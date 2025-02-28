@@ -774,13 +774,13 @@ int Si2177_ATV_Channel_Scan_M (L1_Si2177_Context *api, unsigned long rangeMinHz,
   Parameter:  max SNR 1/2 dB
   Returns:    0 if successful, otherwise an error.
 ************************************************************************************************************************/
-int Si2177_ATV_Channel_Scan_PAL(L1_Si2177_Context *api, unsigned long rangeMinHz, unsigned long rangeMaxHz, int minRSSIdBm, int maxRSSIdBm, int minSNRHalfdB, int maxSNRHalfdB)
+int Si2177_ATV_Channel_Scan_PAL(L1_Si2177_Context *api, char standard, unsigned long rangeMinHz, unsigned long rangeMaxHz, int minRSSIdBm, int maxRSSIdBm, int minSNRHalfdB, int maxSNRHalfdB)
 {
 
   #define VHF_MAX 300000000
   #define SCAN_INTERVAL 1000000
   #define CHANNEL_NOT_FOUND 0
-  char standard = Si2177_ATV_VIDEO_MODE_PROP_VIDEO_SYS_B;
+  //char standard = Si2177_ATV_VIDEO_MODE_PROP_VIDEO_SYS_B;
   unsigned long freq;
   unsigned long channelIncrement;
   char posModulation;  /* flag for pos or neg modulation */

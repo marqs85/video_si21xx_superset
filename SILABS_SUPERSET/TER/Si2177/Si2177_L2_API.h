@@ -51,7 +51,7 @@ int Si2177_Standby               (L1_Si2177_Context *api);
 int Si2177_Powerdown             (L1_Si2177_Context *api);
 int Si2177_LoadVideofilter       (L1_Si2177_Context *api, vid_filt_struct vidFiltTable[], int lines);
 int Si2177_ATV_Channel_Scan_M    (L1_Si2177_Context *api, unsigned long rangeMinHz, unsigned long rangeMaxHz, int minRSSIdBm, int maxRSSIdBm, int minSNRHalfdB, int maxSNRHalfdB);
-int Si2177_ATV_Channel_Scan_PAL  (L1_Si2177_Context *api, unsigned long rangeMinHz, unsigned long rangeMaxHz, int minRSSIdBm, int maxRSSIdBm, int minSNRHalfdB, int maxSNRHalfdB);
+int Si2177_ATV_Channel_Scan_PAL  (L1_Si2177_Context *api, char standard, unsigned long rangeMinHz, unsigned long rangeMaxHz, int minRSSIdBm, int maxRSSIdBm, int minSNRHalfdB, int maxSNRHalfdB);
 int Si2177_AGC_Override    (L1_Si2177_Context *api, unsigned char mode );
 #define Si2177_FORCE_NORMAL_AGC       0
 #define Si2177_FORCE_MAX_AGC          1
