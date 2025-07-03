@@ -73,7 +73,7 @@ void          Si2177_storeUserProperties    (Si2177_PropObj   *prop) {
 
 #ifdef    Si2177_ATV_CVBS_OUT_PROP
   prop->atv_cvbs_out.offset                  =    25; /* (default    25) */
-  prop->atv_cvbs_out.amp                     =   200; /* (default   200) */
+  prop->atv_cvbs_out.amp                     =    87; /* (default   200) */
 #endif /* Si2177_ATV_CVBS_OUT_PROP */
 
 #ifdef    Si2177_ATV_CVBS_OUT_FINE_PROP
